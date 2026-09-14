@@ -1,0 +1,92 @@
+/* App polish: decoration layering + native-touch cleanup */
+.visual-stage{isolation:isolate}
+.visual-stage::before{
+  z-index:0 !important;
+  pointer-events:none !important;
+}
+.visual-stage > *{
+  position:relative;
+  z-index:1;
+}
+
+/* Interactive elements should feel like controls, not selectable webpage text. */
+button,
+.btn,
+.option,
+.ministep,
+.attn-token,
+.stage,
+.check,
+.answer,
+.handoff-options button,
+[data-jump]{
+  -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+  touch-action:manipulation;
+  appearance:none;
+  -webkit-appearance:none;
+  cursor:pointer;
+}
+
+/* Remove transient browser focus paint after pointer/touch taps, while preserving
+   a deliberate keyboard focus treatment for accessibility. */
+button:focus:not(:focus-visible),
+.btn:focus:not(:focus-visible),
+.option:focus:not(:focus-visible),
+.ministep:focus:not(:focus-visible),
+.attn-token:focus:not(:focus-visible),
+.stage:focus:not(:focus-visible),
+.check:focus:not(:focus-visible),
+.answer:focus:not(:focus-visible),
+.handoff-options button:focus:not(:focus-visible),
+[data-jump]:focus:not(:focus-visible){
+  outline:none !important;
+  box-shadow:none;
+}
+
+button:focus-visible,
+.btn:focus-visible,
+.option:focus-visible,
+.ministep:focus-visible,
+.attn-token:focus-visible,
+.stage:focus-visible,
+.check:focus-visible,
+.answer:focus-visible,
+.handoff-options button:focus-visible,
+[data-jump]:focus-visible{
+  outline:3px solid rgba(36,107,253,.48);
+  outline-offset:3px;
+}
+
+/* Prevent Safari from selecting labels during rapid classroom tapping. */
+button *,
+.btn *,
+.option *,
+.ministep *,
+.attn-token *,
+.stage *,
+.check *,
+.answer *,
+.handoff-options button *,
+[data-jump] *{
+  -webkit-user-select:none;
+  user-select:none;
+  pointer-events:none;
+}
+
+@media (hover:none) and (pointer:coarse){
+  button,
+  .btn,
+  .option,
+  .ministep,
+  .attn-token,
+  .stage,
+  .check,
+  .answer,
+  .handoff-options button,
+  [data-jump]{
+    -webkit-tap-highlight-color:rgba(0,0,0,0);
+  }
+}
