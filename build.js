@@ -1,0 +1,11 @@
+const fs=require('fs');
+const path=require('path');
+const out=path.join(__dirname,'dist');
+fs.rmSync(out,{recursive:true,force:true});
+fs.mkdirSync(out,{recursive:true});
+const copy=['responsive.css','sw.js','manifest.webmanifest','icon.svg','art-1.webp','art-2.webp','art-3.webp','art-4.webp'];
+for(const file of copy)fs.copyFileSync(path.join(__dirname,file),path.join(out,file));
+let html=fs.readFileSync(path.join(__dirname,'index.html'),'utf8');
+if(!html.includes('/responsive.css'))html=html.replace('</head>','<link rel="stylesheet" href="/responsive.css?v=6"></head>');
+fs.writeFileSync(path.join(out,'index.html'),html);
+console.log('Built classroom site into dist/ with responsive.css linked in the initial HTML response.');
