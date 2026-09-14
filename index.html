@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
+<meta content="#F7F3EA" name="theme-color"/>
+<title>Inside GPT — An Interactive Visual Story</title>
+<style>
+:root{
+  --paper:#F7F3EA;
+  --paper2:#FFFDF8;
+  --ink:#0B1B3A;
+  --ink2:#203459;
+  --muted:#68748A;
+  --blue:#246BFD;
+  --blue2:#91B8FF;
+  --coral:#FF6E61;
+  --yellow:#FFD46A;
+  --mint:#BFE9DB;
+  --teal:#3E8F88;
+  --soft:#EEF2F7;
+  --soft2:#E9E5DC;
+  --green:#46A874;
+  --red:#E95E55;
+  --shadow:0 24px 60px rgba(11,27,58,.11);
+  --shadow2:0 10px 28px rgba(11,27,58,.09);
+  --r:28px;
+  --r2:20px;
+  --max:1180px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;background:var(--paper);overflow-x:hidden}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,Segoe UI,Arial,sans-serif;letter-spacing:-.015em;overflow-x:hidden}
+button,input{font:inherit}
+button{color:inherit}
+::selection{background:#bcd2ff}
+a{color:inherit}
+img{max-width:100%}
+.appbar{
+  position:fixed;z-index:100;top:14px;left:50%;transform:translateX(-50%);
+  width:min(var(--max),calc(100% - 24px));height:64px;padding:0 12px 0 18px;
+  display:flex;align-items:center;gap:12px;background:rgba(255,253,248,.92);
+  backdrop-filter:blur(18px) saturate(120%);-webkit-backdrop-filter:blur(18px) saturate(120%);
+  border-radius:20px;box-shadow:0 12px 32px rgba(11,27,58,.08)
+}
+.brand{display:flex;align-items:center;gap:11px;font-size:13px;font-weight:900;white-space:nowrap}
+.logo{width:36px;height:36px;border-radius:13px;background:var(--ink);position:relative;overflow:hidden}
+.logo:before{content:"";position:absolute;width:23px;height:23px;border-radius:45% 55% 58% 42%;background:var(--coral);left:4px;top:5px;transform:rotate(-12deg)}
+.logo:after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:var(--yellow);right:3px;bottom:4px}
+.actnav{display:flex;gap:6px;margin-left:auto}
+.actnav button,.ghostbtn{border:0;background:#F0ECE3;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer;transition:.18s}
+.actnav button.active{background:var(--ink);color:white}
+.ghostbtn:hover,.actnav button:hover{transform:translateY(-1px)}
+.progress{width:90px;height:7px;border-radius:999px;background:#E7E2D8;overflow:hidden;margin-left:4px}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--coral));border-radius:inherit;transition:.25s}
+.hero,.act,.final{min-height:100vh;display:grid;align-items:center;padding:110px 6vw 68px}
+.wrap{width:min(var(--max),100%);margin:0 auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:54px;align-items:center}
+.eyebrow{display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.15em;font-size:11px;font-weight:900;color:#637089;margin-bottom:16px}
+.eyebrow .dot{width:9px;height:9px;border-radius:50%;background:var(--coral)}
+h1,h2,h3,p{margin-top:0}
+h1{font-size:clamp(64px,8.2vw,114px);line-height:.86;letter-spacing:-.075em;margin-bottom:24px}
+h2{font-size:clamp(44px,5.4vw,75px);line-height:.94;letter-spacing:-.06em;margin-bottom:18px}
+h3{font-size:21px;letter-spacing:-.035em;margin-bottom:9px}
+.lede{font-size:clamp(19px,2.05vw,26px);line-height:1.45;color:#5E6C83;max-width:860px}
+.accent{color:var(--coral)}
+.blue{color:var(--blue)}
+.small{font-size:13px;color:var(--muted);line-height:1.5}
+.micro{font-size:11px;color:var(--muted);line-height:1.45}
+.btn{
+  border:0;border-radius:15px;padding:14px 18px;font-weight:900;cursor:pointer;transition:.18s;box-shadow:0 8px 22px rgba(11,27,58,.09)
+}
+.btn:hover{transform:translateY(-2px)}
+.btn.primary{background:var(--ink);color:white}
+.btn.blue{background:var(--blue);color:white}
+.btn.soft{background:#EDE8DE}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:20px}
+.chip{display:inline-flex;align-items:center;gap:7px;border-radius:999px;background:#EEEAE1;padding:8px 11px;font-size:12px;font-weight:800}
+.card{background:var(--paper2);border-radius:var(--r);box-shadow:var(--shadow);padding:26px;position:relative}
+.card.flat{box-shadow:var(--shadow2)}
+
+.grid2>*,
+.transformer-shell>*,
+.train-grid>*,
+.selfsup>*,
+.scale-wrap>*,
+.post-grid>*,
+.inference>*,
+.acthead>*{min-width:0}
+.chip{max-width:100%;white-space:normal}
+\n.hero-art{min-height:560px;position:relative;border-radius:40px;background:linear-gradient(145deg,#DDE8FF,#FDE7BE 80%);overflow:hidden;box-shadow:var(--shadow);z-index:1;isolation:isolate}
+.hero-art:before{content:"";position:absolute;width:220px;height:220px;background:#BFE9DB;border-radius:45% 55% 61% 39%;right:-70px;bottom:-95px;left:auto;transform:rotate(18deg);z-index:0}
+.hero-art img{position:absolute;height:88%;width:auto;max-width:86%;right:5%;bottom:0;object-fit:contain;filter:drop-shadow(0 24px 35px rgba(11,27,58,.12));z-index:1}
+.hero .grid2>div:first-child{position:relative;z-index:3}
+.hero .actions{position:relative;z-index:4}
+.speech{position:absolute;z-index:4;background:var(--paper2);border-radius:24px;padding:15px 18px;box-shadow:var(--shadow2);font-size:14px;font-weight:900;max-width:210px}
+.speech.one{left:22px;top:22px;transform:rotate(-4deg);max-width:190px}
+.speech.two{right:24px;bottom:24px;transform:rotate(3deg)}
+.promise{margin-top:25px;padding:16px 18px;border-radius:19px;background:#ECE8DE;max-width:760px;display:flex;gap:12px;align-items:flex-start;font-size:14px;line-height:1.5}
+.promise .n{width:34px;height:34px;border-radius:11px;background:var(--yellow);display:grid;place-items:center;font-weight:950;flex:0 0 34px}
+.act{border-top:1px solid rgba(11,27,58,.04)}
+.acthead{display:grid;grid-template-columns:160px 1fr;gap:28px;align-items:start;margin-bottom:34px}
+.actbadge{border-radius:28px;padding:20px;min-height:150px;background:var(--ink);color:white;display:flex;flex-direction:column;justify-content:space-between}
+.actbadge strong{font-size:39px;letter-spacing:-.06em}
+.actbadge span{font-size:12px;opacity:.75}
+.section{margin:26px 0 72px}
+.section-title{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}
+.stepnum{width:42px;height:42px;border-radius:14px;background:var(--yellow);display:grid;place-items:center;font-weight:950;flex:0 0 42px}
+.section-title h3{font-size:27px;margin:3px 0 4px}
+.section-title p{margin:0;color:var(--muted);font-size:14px;line-height:1.45;max-width:780px}
+.challenge{background:var(--ink);color:white;border-radius:30px;padding:28px;position:relative;overflow:hidden}
+.challenge:after{content:"?";position:absolute;right:16px;bottom:-58px;font-size:220px;font-weight:950;color:rgba(255,255,255,.05)}
+.sentence{font-size:clamp(34px,5vw,66px);font-weight:900;letter-spacing:-.055em;line-height:1.05;margin:16px 0 24px}
+.blank{display:inline-flex;min-width:120px;justify-content:center;border-bottom:5px solid var(--coral);color:var(--coral)}
+.options{display:flex;gap:10px;flex-wrap:wrap;position:relative;z-index:2}
+.option{border:0;background:white;color:var(--ink);padding:13px 18px;border-radius:14px;font-weight:900;cursor:pointer;transition:.18s}
+.option:hover{transform:translateY(-2px)}
+.option.selected{background:var(--yellow)}
+.feedback{margin-top:16px;max-width:760px;padding:14px 15px;border-radius:17px;background:rgba(255,255,255,.1);font-size:13px;line-height:1.48;display:none}
+.feedback.show{display:block}
+.transformer-shell{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.visual-stage{min-height:430px;border-radius:30px;background:#E8EEFF;padding:26px;position:relative;overflow:hidden}
+.visual-stage:before{content:"";position:absolute;width:250px;height:250px;border-radius:52% 48% 43% 57%;background:#FFD66D;right:-100px;top:-90px;transform:rotate(22deg)}
+.tokenrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.token{border:0;background:#FFFDF8;border-radius:14px;padding:12px 14px;font-weight:900;box-shadow:var(--shadow2);transition:.22s}
+.token.num{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#DDE6FF;color:#274C94}
+.arrow{font-size:25px;font-weight:950;color:#7A879D}
+.revealbox{margin-top:20px;padding:16px;border-radius:20px;background:#FFFDF8;box-shadow:var(--shadow2);font-size:13px;line-height:1.5;min-height:82px}
+.token-stage{display:none}.token-stage.active{display:block}
+.ministeps{display:flex;gap:7px;flex-wrap:wrap;margin-top:18px}
+.ministep{border:0;background:#EDE8DE;padding:9px 11px;border-radius:12px;font-size:12px;font-weight:850;cursor:pointer}
+.ministep.active{background:var(--ink);color:white}
+.attention-pick{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.attn-token{border:0;background:#F0ECE3;border-radius:15px;padding:13px 14px;font-weight:900;cursor:pointer;min-width:72px;transition:.18s}
+.attn-token.picked{background:var(--yellow)}
+.attn-token.reveal{background:#DCE7FF}
+.attn-token strong{display:block;color:var(--blue);font-size:11px;margin-top:5px;min-height:14px}
+.resultnote{padding:15px 16px;border-radius:18px;background:#EBF0F8;font-size:13px;line-height:1.48}
+.block-stack{display:grid;gap:10px}
+.block{background:#FFFDF8;border-radius:20px;padding:17px;box-shadow:var(--shadow2);display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center;transition:.25s}
+.block.active{transform:translateX(7px);background:#DDE6FF}
+.block .icon{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:var(--mint);font-weight:950}
+.block b{display:block;margin-bottom:4px}
+.block small{color:var(--muted);line-height:1.4}
+.block .out{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;background:#F0ECE3;padding:8px 9px;border-radius:11px;white-space:nowrap}
+.hidden-note{margin-top:14px;padding:16px;border-radius:18px;background:#FFE9E5;font-size:13px;line-height:1.5}
+
+.handoff-demo{display:grid;grid-template-columns:1.25fr .75fr;gap:22px;align-items:stretch}
+.handoff-main,.handoff-side{padding:24px}
+.handoff-kicker{font-size:10px;font-weight:950;letter-spacing:.15em;color:#637089;margin-bottom:10px}
+.handoff-sentence{font-size:31px;font-weight:950;letter-spacing:-.04em;margin-bottom:12px}.handoff-sentence span{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:13px;background:#FFE59A;color:var(--ink)}
+.rep-card{margin-top:18px;padding:18px;border-radius:22px;background:#EEF1F6;transition:.3s}.rep-card.changed{background:#E6F1EC}.rep-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}.rep-vector{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.rep-vector span,.rep-vector em{min-width:62px;padding:12px 10px;border-radius:13px;background:white;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-style:normal;text-align:center;font-weight:850;box-shadow:var(--shadow2);transition:.3s}.rep-vector.pulse span{transform:translateY(-3px);background:#DDE6FF}.rep-explain{font-size:13px;line-height:1.48;color:var(--muted)}
+.inside-block{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:8px;align-items:center;margin-top:18px}.inside-step{padding:14px;border-radius:17px;background:#F0ECE3;opacity:.45;transition:.25s;min-height:104px}.inside-step.active{opacity:1;background:#DDE6FF;transform:translateY(-2px)}.inside-step.done{opacity:1;background:#E7F3EE}.inside-num{width:27px;height:27px;border-radius:9px;background:white;display:grid;place-items:center;font-size:11px;font-weight:950;margin-bottom:7px}.inside-step small{display:block;color:var(--muted);line-height:1.35;margin-top:4px}.inside-arrow{font-weight:950;color:#8793A6}
+.context-mix{display:none;gap:8px;flex-wrap:wrap;margin-top:14px}.context-mix.show{display:flex}.context-mix span{padding:8px 10px;border-radius:12px;background:#FFF2C9;font-size:12px}.context-mix b{color:#365C9E}
+.handoff-options{display:grid;gap:9px;margin:16px 0}.handoff-options button{border:0;text-align:left;padding:14px 15px;border-radius:15px;background:#F0ECE3;font-weight:850;cursor:pointer;transition:.18s}.handoff-options button:hover{transform:translateY(-1px)}.handoff-options button.correct{background:#DDF0D0}.handoff-options button.wrong{background:#FFE0DB}.handoff-options button:disabled{cursor:default;opacity:.68}
+.next-block{display:none}.next-block.show{display:block}.mini-handoff{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:18px 0}.mini-handoff>div{padding:14px;border-radius:16px;background:#EEF1F6}.mini-handoff small,.after-next small{display:block;color:var(--muted);margin-bottom:5px}.mini-handoff b,.after-next b{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}.mini-handoff>span{font-size:23px;font-weight:950}.after-next{display:none;margin-top:14px;padding:15px;border-radius:17px;background:#E7F3EE}.after-next.show{display:block}.after-next p{font-size:12px;line-height:1.45;color:var(--muted);margin:8px 0 0}
+.outputbars{display:grid;gap:11px;margin-top:18px}
+.barrow{display:grid;grid-template-columns:82px 1fr 48px;gap:10px;align-items:center;font-size:13px;font-weight:800}
+.bar{height:14px;border-radius:999px;background:#E8E4DB;overflow:hidden}
+.bar i{height:100%;display:block;border-radius:inherit;background:var(--blue);width:0;transition:.75s cubic-bezier(.2,.8,.2,1)}
+.forward-reveal{margin-top:20px;padding:18px;border-radius:20px;background:var(--ink);color:white;font-size:14px;line-height:1.5;display:none}
+.forward-reveal.show{display:block}
+.microscope{margin-top:22px;background:#FFFDF8;border-radius:28px;box-shadow:var(--shadow2);overflow:hidden}
+.micro-head{padding:20px 22px;display:flex;justify-content:space-between;align-items:center;gap:14px;cursor:pointer}
+.micro-body{display:none;padding:0 22px 24px}.micro-body.open{display:block}
+.neuron-flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:12px;align-items:center}
+.vec{background:#EEF1F6;border-radius:18px;padding:15px}
+.vec b{display:block;margin-bottom:8px}
+.vec code{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#365C9E}
+.bend{background:#FFE4DE;border-radius:18px;padding:15px}
+.sliderline{margin-top:18px;padding:15px;background:#F0ECE3;border-radius:18px}
+.sliderline input{width:100%;accent-color:var(--coral)}
+.techdetails{margin-top:12px;font-size:12px;color:var(--muted);line-height:1.5}
+.train-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.prediction{padding:22px;border-radius:25px;background:#EEF1F6}
+.prediction h3{margin-bottom:15px}
+.target{padding:22px;border-radius:25px;background:#DDF0D0}
+.target .word{font-size:46px;font-weight:950;letter-spacing:-.06em}
+.direction-options{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+.direction-options button{border:0;background:#FFFDF8;border-radius:15px;padding:14px;font-weight:900;cursor:pointer}
+.direction-options button.good{background:#DDF0D0}
+.direction-options button.bad{background:#FFE0DD}
+.backprop{margin-top:20px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.bp{padding:15px;border-radius:18px;background:#F0ECE3;min-height:110px;transition:.25s}
+.bp.active{background:#DDE6FF;transform:translateY(-3px)}
+.bp strong{display:block;margin-bottom:7px}
+.bp p{font-size:12px;color:var(--muted);line-height:1.4;margin:0}
+.generalize{margin-top:20px;padding:20px;border-radius:24px;background:var(--ink);color:white;display:none}
+.generalize.show{display:block}
+.selfsup{display:grid;grid-template-columns:.95fr 1.05fr;gap:22px;align-items:center}
+.selfsup-art{min-height:410px;border-radius:30px;background:linear-gradient(145deg,#FFE6DB,#F6D67D);position:relative;overflow:hidden}
+.selfsup-art img{position:absolute;height:94%;width:auto;max-width:94%;left:3%;bottom:-1%;object-fit:contain}
+.examples{display:grid;gap:8px;margin-top:14px}
+.example{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:11px 13px;border-radius:15px;background:#F0ECE3;opacity:.2;transform:translateY(5px);transition:.25s}
+.example.show{opacity:1;transform:none}
+.example b{color:var(--coral)}
+.revelation{margin-top:14px;padding:15px 16px;background:#FFF2B8;border-radius:18px;font-weight:900;display:none}
+.revelation.show{display:block}
+.scale-wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:30px;align-items:center}
+.mountain{min-height:480px;border-radius:36px;background:linear-gradient(160deg,#DCE9F2,#FFF1C8);position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.mountain img{position:absolute;width:96%;height:auto;max-height:96%;right:2%;bottom:0;object-fit:contain}
+.scale-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.scale-card{padding:17px;border-radius:21px;background:#FFFDF8;box-shadow:var(--shadow2);min-height:120px}
+.scale-card .big{font-size:31px;font-weight:950;letter-spacing:-.05em;color:var(--blue)}
+.scale-card p{font-size:12px;color:var(--muted);line-height:1.42;margin:6px 0 0}
+.scalequiz{margin-top:20px;padding:22px;border-radius:25px;background:#FFFDF8;box-shadow:var(--shadow2)}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.check{border:0;text-align:left;background:#EFEAE1;border-radius:14px;padding:12px;font-weight:800;cursor:pointer}
+.check.selected{background:#DCE7FF}
+.check.correct{background:#DDF0D0}
+.check.wrong{background:#FFE0DD}
+.post-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.stage-list{display:grid;gap:10px}
+.stage{padding:17px;border-radius:20px;background:#F0ECE3;cursor:pointer;transition:.18s}
+.stage.active{background:#DCE7FF}
+.stage small{display:block;color:var(--muted);margin-top:6px;line-height:1.4}
+.stage-detail{background:#FFFDF8;border-radius:28px;padding:24px;box-shadow:var(--shadow2);min-height:280px}
+.rlhf{margin-top:28px;padding:26px;border-radius:30px;background:#FFFDF8;box-shadow:var(--shadow)}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.answer{border:0;text-align:left;background:#F0ECE3;border-radius:20px;padding:17px;cursor:pointer;transition:.18s}
+.answer:hover{transform:translateY(-2px)}
+.answer.selected{background:#DCE7FF}
+.answer p{font-size:13px;line-height:1.48;color:#44516A;margin:0}
+.pref-feedback{margin-top:15px;padding:16px;border-radius:18px;background:#DDF0D0;display:none;font-size:13px;line-height:1.5}
+.pref-feedback.show{display:block}
+.inference{display:grid;grid-template-columns:.85fr 1.15fr;gap:22px;align-items:center}
+.robot-scene{min-height:420px;border-radius:34px;background:linear-gradient(145deg,#DCE7FF,#F7E6BB);position:relative;overflow:hidden}
+.robot-scene img{position:absolute;height:94%;width:auto;max-width:88%;left:50%;transform:translateX(-50%);bottom:0;object-fit:contain}
+.chatbox{background:#FFFDF8;border-radius:30px;box-shadow:var(--shadow);padding:24px}
+.chatline{font-size:29px;line-height:1.25;font-weight:900;letter-spacing:-.04em;min-height:76px}
+.candidates{display:grid;gap:8px;margin:18px 0}
+.candidate{display:grid;grid-template-columns:100px 1fr 44px;gap:9px;align-items:center;font-size:12px}
+.candidate i{display:block;height:12px;background:var(--blue);border-radius:999px}
+.modecompare{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.mode{padding:15px;border-radius:18px;background:#EFEAE1;font-size:12px;line-height:1.45}
+.mode b{display:block;font-size:13px;margin-bottom:4px}
+.final{padding-bottom:90px}
+.map{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:24px}
+.mapstep{padding:15px;border-radius:19px;background:#FFFDF8;box-shadow:var(--shadow2);min-height:145px}
+.mapstep .n{width:31px;height:31px;border-radius:11px;background:#DCE7FF;display:grid;place-items:center;font-weight:950;margin-bottom:14px}
+.mapstep p{font-size:12px;line-height:1.4;color:var(--muted);margin:5px 0 0}
+.taxonomy{margin-top:26px;padding:22px;border-radius:28px;background:var(--ink);color:white}
+.taxrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tax{padding:11px 13px;border-radius:14px;background:rgba(255,255,255,.09);font-size:12px;font-weight:850}
+.taxarrow{opacity:.5}
+.memory{margin-top:24px;padding:22px;border-radius:26px;background:#FFF2B8}
+.memory p{margin:0;font-size:18px;line-height:1.5;font-weight:760}
+.footer{padding:34px 18px 46px;text-align:center;color:#788397;font-size:12px}
+@media(max-width:1020px){
+  .grid2,.transformer-shell,.train-grid,.selfsup,.scale-wrap,.post-grid,.inference{grid-template-columns:1fr}
+  .acthead{grid-template-columns:1fr}.actbadge{min-height:auto}.actnav{display:none}.progress{margin-left:auto}
+  .map{grid-template-columns:repeat(3,1fr)}
+  .hero-art{min-height:480px}.selfsup-art,.robot-scene{min-height:360px}
+}
+@media(max-width:720px){\n  .actions{align-items:flex-start}.actions .chip{flex:0 1 auto}.hero .actions{flex-direction:column;align-items:flex-start}\n
+  .appbar{top:7px;height:56px}.brand span{display:none}.ghostbtn{padding:9px 10px}.progress{display:none}
+  .hero,.act,.final{min-height:auto;padding:84px 16px 48px}
+  h1{font-size:clamp(50px,14vw,60px)} h2{font-size:clamp(40px,12vw,57px)}
+  .grid2{gap:24px}.hero-art{min-height:380px}.hero-art img{height:84%;width:auto;max-width:84%;right:4%}.selfsup-art img{height:90%;width:auto;max-width:90%;left:5%}.speech{font-size:11px;max-width:150px}.speech.one{left:14px;top:14px}.speech.two{right:14px;bottom:14px}
+  .acthead{gap:16px}.actbadge strong{font-size:32px}.section{margin-bottom:54px}
+  .section-title h3{font-size:23px}.challenge{padding:20px}.sentence{font-size:38px}
+  .transformer-shell{gap:14px}.visual-stage{min-height:auto}.neuron-flow{grid-template-columns:1fr}.neuron-flow .arrow{transform:rotate(90deg);text-align:center}
+  .direction-options{grid-template-columns:1fr}.backprop{grid-template-columns:1fr 1fr}
+  .scale-cards,.checks,.answers,.modecompare{grid-template-columns:1fr}
+  .map{grid-template-columns:1fr 1fr}.mapstep{min-height:120px}
+  .barrow{grid-template-columns:70px 1fr 42px}.token{padding:10px 11px}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#F7F3EA">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Inside GPT">
+</head>
+<body>
+<header class="appbar">
+<div class="brand"><div aria-hidden="true" class="logo"></div><span>Inside GPT</span></div>
+<div class="actnav">
+<button data-jump="act1">1 · Predict</button>
+<button data-jump="act2">2 · Learn</button>
+<button data-jump="act3">3 · Scale</button>
+<button data-jump="act4">4 · Assist</button>
+</div>
+<div aria-label="Progress" class="progress"><i id="progress"></i></div>
+<button class="ghostbtn" data-jump="final">Big picture</button>
+</header>
+<main>
+<section class="hero" id="hero">
+<div class="wrap grid2">
+<div>
+<div class="eyebrow"><span class="dot"></span> A self-guided visual story</div>
+<h1>From words to <span class="accent">understanding.</span></h1>
+<p class="lede">Follow one sentence through a GPT. See how text becomes numbers, how a transformer uses context, how training corrects mistakes, and how a pretrained language model becomes an assistant.</p>
+<div class="promise"><div class="n">→</div><div><b>One continuous story.</b> You will keep returning to the same question: <b>“The bank approved the ___”</b>. Every new concept exists to explain what happens next.</div></div>
+<div class="actions"><button class="btn primary" data-jump="act1">Start with the sentence</button><span class="chip">No maths background needed</span></div>
+</div>
+<div class="hero-art">
+<div class="speech one">The bank approved the <span class="accent">___</span></div>
+<div class="speech two">How would GPT decide?</div>
+<img alt="Illustrated professional and friendly robot exploring how GPT works" src="/art-1.webp"/>
+</div>
+</div>
+</section>
+<section class="act" id="act1">
+<div class="wrap">
+<div class="acthead">
+<div class="actbadge"><span>ACT 1 OF 4</span><strong>Predict.</strong><span>How GPT completes a sentence.</span></div>
+<div><div class="eyebrow"><span class="dot"></span> Make one prediction</div><h2>How does GPT decide what comes <span class="blue">next?</span></h2><p class="lede">We will follow one sentence all the way from ordinary text to a probability distribution over possible next tokens.</p></div>
+</div>
+<div class="section">
+<div class="section-title"><div class="stepnum">1</div><div><h3>First, make your own prediction</h3><p>Before seeing the machinery, use your own context. There is no trick here. The point is to notice that several completions are possible, but some feel much more likely.</p></div></div>
+<div class="challenge">
+<div class="small" style="color:#CAD4E7">Complete the sentence</div>
+<div class="sentence">The bank approved the <span class="blank" id="guessBlank">___</span></div>
+<div class="options" id="guessOptions">
+<button class="option" data-word="loan">loan</button>
+<button class="option" data-word="request">request</button>
+<button class="option" data-word="deal">deal</button>
+<button class="option" data-word="branch">branch</button>
+</div>
+<div class="feedback" id="guessFeedback"></div>
+</div>
+</div>
+<div class="section">
+<div class="section-title"><div class="stepnum">2</div><div><h3>The sentence must become something a neural network can process</h3><p>GPT does not receive words directly. Text is split into tokens, each token gets an ID, and the model turns those IDs into learned vectors of numbers.</p></div></div>
+<div class="transformer-shell">
+<div class="visual-stage">
+<div class="ministeps">
+<button class="ministep active" data-tokenstage="0">Sentence</button>
+<button class="ministep" data-tokenstage="1">Tokens</button>
+<button class="ministep" data-tokenstage="2">Numbers</button>
+</div>
+<div class="token-stage active" data-stage="0">
+<div class="sentence" style="font-size:42px;margin-top:70px">The bank approved the ___</div>
+<div class="revealbox"><b>What exists now?</b><br/>Human-readable text. Useful to us, but not yet in the form a neural network calculates with.</div>
+</div>
+<div class="token-stage" data-stage="1">
+<div class="tokenrow" style="margin-top:74px"><span class="token">The</span><span class="token">bank</span><span class="token">approved</span><span class="token">the</span></div>
+<div class="revealbox"><b>Tokens</b> are pieces of text. A token may be a whole word, part of a word, punctuation, or another text fragment depending on the tokenizer.</div>
+</div>
+<div class="token-stage" data-stage="2">
+<div class="tokenrow" style="margin-top:58px"><span class="token num">[0.8,-.2,…]</span><span class="token num">[-.1,.7,…]</span><span class="token num">[.4,.9,…]</span><span class="token num">[.2,.1,…]</span></div>
+<div class="revealbox"><b>Embeddings</b> are learned vectors. Their individual dimensions are not neat labels like “banking” or “grammar”. They are internal numerical features learned from training.</div>
+</div>
+</div>
+<div class="card">
+<h3>The same object keeps changing form</h3>
+<p class="small">This is an important mental model: GPT is not swapping between a “language mode” and a “math mode”. Once text is encoded, the network continually transforms numerical representations.</p>
+<div class="promise" style="margin-top:18px"><div class="n">1</div><div><b>Input layer:</b> the network starts with numerical representations of the tokens and their positions.</div></div>
+<div class="promise"><div class="n">2</div><div><b>Hidden processing:</b> internal layers repeatedly transform those representations.</div></div>
+<div class="promise"><div class="n">3</div><div><b>Output layer:</b> the final representation is converted into scores for possible next tokens.</div></div>
+</div>
+</div>
+</div>
+<div class="section">
+<div class="section-title"><div class="stepnum">3</div><div><h3>Attention asks: which earlier words matter for this prediction?</h3><p>GPT-style models use causal attention. When predicting the blank, they can use earlier context, not future words that have not been generated yet.</p></div></div>
+<div class="card">
+<h3>Pick the two earlier tokens you think matter most</h3>
+<p class="small">For predicting the blank in <b>“The bank approved the ___”</b>, tap two tokens. Then reveal one illustrative weighting.</p>
+<div class="attention-pick" id="attentionPick">
+<button class="attn-token" data-i="0">The<strong></strong></button>
+<button class="attn-token" data-i="1">bank<strong></strong></button>
+<button class="attn-token" data-i="2">approved<strong></strong></button>
+<button class="attn-token" data-i="3">the<strong></strong></button>
+</div>
+<div class="actions"><button class="btn blue" id="revealAttention">Reveal illustrative attention</button><span class="chip" id="attnCount">0 of 2 selected</span></div>
+<div class="resultnote" id="attnResult" style="margin-top:16px">Nothing has been revealed yet. Real models use many attention heads across many layers, so there is not one single permanent percentage for each word.</div>
+</div>
+</div>
+<div class="section">
+<div class="section-title"><div class="stepnum">4</div><div><h3>What actually moves from one hidden block to the next?</h3><p>This is the bridge between attention and the final prediction. The words themselves are not repeatedly passed forward. Each transformer block receives a <b>numerical representation</b>, changes it, and hands the new representation to the next block.</p></div></div>
+<div class="handoff-demo">
+<div class="handoff-main card">
+<div class="handoff-kicker">FOLLOW ONE REPRESENTATION</div>
+<div class="handoff-sentence">The bank approved the <span>?</span></div>
+<p class="small">We are tracking the internal representation used for the position where GPT must predict the next token. The four numbers shown below are illustrative slices of a much larger vector.</p>
+<div class="rep-card">
+<div class="rep-head"><b id="repTitle">Input to transformer block 1</b><span class="chip" id="repStage">Before attention</span></div>
+<div class="rep-vector" id="repVector"><span>0.21</span><span>-0.48</span><span>0.77</span><span>0.13</span><em>…</em></div>
+<div class="rep-explain" id="repExplain">This representation already contains information about the current token position. Block 1 will now mix in useful earlier context.</div>
+</div>
+<div class="inside-block">
+<div class="inside-step active" id="insideAttn"><div class="inside-num">1</div><div><b>Attention</b><small>Mix useful information from earlier tokens into this representation.</small></div></div>
+<div class="inside-arrow">→</div>
+<div class="inside-step" id="insideFF"><div class="inside-num">2</div><div><b>Feed-forward transformation</b><small>Apply learned transformations and non-linearity to reshape the representation.</small></div></div>
+<div class="inside-arrow">→</div>
+<div class="inside-step" id="insideOut"><div class="inside-num">3</div><div><b>Block output</b><small>The changed vector leaves this block.</small></div></div>
+</div>
+<div class="context-mix" id="contextMix"><span>approved <b>43%</b></span><span>bank <b>29%</b></span><span>the <b>17%</b></span><span>The <b>11%</b></span></div>
+<div class="actions"><button class="btn blue" id="advanceBlock">Run attention</button><span class="chip" id="handoffStatus">Step 1 of 3</span></div>
+</div>
+<div class="handoff-side card">
+<div class="handoff-question" id="handoffQuestion">
+<div class="handoff-kicker">THE KEY TRANSITION</div>
+<h3>After block 1 finishes, what does block 2 receive?</h3>
+<p class="small">Choose the best answer. This is the idea the old animation was failing to make clear.</p>
+<div class="handoff-options">
+<button data-answer="sentence">The original sentence again</button>
+<button data-answer="attention">Only the attention percentages</button>
+<button data-answer="vector">The numerical output representation from block 1</button>
+</div>
+<div class="resultnote" id="handoffFeedback">Complete the three internal steps on the left, then answer this question.</div>
+</div>
+<div class="next-block" id="nextBlock">
+<div class="handoff-kicker">BLOCK 2</div>
+<h3>The handoff is the whole point.</h3>
+<p class="small">The output of block 1 becomes the input of block 2. Block 2 performs its own attention and feed-forward calculations, producing yet another revised representation.</p>
+<div class="mini-handoff"><div><small>Block 1 output</small><b id="block1Vector">[0.31, 0.24, 1.38, 0.42, …]</b></div><span>→</span><div><small>Block 2 input</small><b>[same numbers]</b></div></div>
+<button class="btn primary" id="runNextBlock">Run one more block</button>
+<div class="after-next" id="afterNext"><small>After block 2</small><b>[0.46, 0.08, 1.61, 0.57, …]</b><p>The numbers changed again. That revised representation would then move into the next transformer block. This repeated handoff is what “deep hidden processing” means.</p></div>
+</div>
+</div>
+</div>
+<div class="hidden-note" style="margin-top:18px"><b>Important:</b> these numbers and percentages are teaching illustrations, not a trace from a production GPT. Real representations contain many more dimensions, and residual connections help preserve and combine information as it moves through the stack.</div>
+<div class="hidden-note" style="background:#E7F3EE"><b>No neat job titles:</b> it is misleading to say “layer 4 does grammar” and “layer 12 does finance”. Useful patterns are distributed across many components and layers.</div>
+<div class="microscope">
+<div class="micro-head" id="microHead">
+<div><b>Optional microscope: where do neurons and activation functions fit?</b><div class="micro">Open this if you want to zoom into one feed-forward transformation.</div></div>
+<span class="chip" id="microToggle">Open</span>
+</div>
+<div class="micro-body" id="microBody">
+<div class="neuron-flow">
+<div class="vec"><b>Incoming vector slice</b><code>[0.62, -0.14, 0.88]</code><div class="micro">Numbers arriving from the previous calculation.</div></div>
+<div class="arrow">×</div>
+<div class="vec"><b>Learned weights</b><code>[0.70, -0.30, 0.55]</code><div class="micro">Internal adjustable numbers learned during training.</div></div>
+<div class="arrow">→</div>
+<div class="bend"><b>Combine + bend</b><div id="geluOut" style="font-size:34px;font-weight:950;margin:5px 0">0.67</div><div class="micro">A neuron-like unit combines inputs, then a non-linear activation reshapes the signal.</div></div>
+</div>
+<div class="sliderline">
+<div style="display:flex;justify-content:space-between;gap:12px"><b>Try an incoming combined signal</b><output id="signalLabel">0.80</output></div>
+<input id="signalSlider" max="2" min="-2" step="0.05" type="range" value="0.8"/>
+<div class="techdetails"><b>Why the “bend”?</b> If every layer only added and multiplied linearly, stacking layers would collapse into something equivalent to one large linear transformation. Non-linear activations let the network model much richer relationships. ReLU, GELU and gated variants are different ways to shape signals. GPT-style transformer families have commonly used smooth activations such as GELU, while newer architectures may use other gated variants.</div>
+</div>
+</div>
+</div>
+</div>
+<div class="section">
+<div class="section-title"><div class="stepnum">5</div><div><h3>The last hidden representation reaches the output layer</h3><p>Now the model needs to turn a context-rich vector back into a decision over possible next tokens.</p></div></div>
+<div class="card">
+<div class="grid2" style="gap:24px">
+<div><h3>Every candidate token gets a score</h3><p class="small">The output layer projects the final representation onto the vocabulary. Those raw compatibility scores are often called <b>logits</b>.</p><div class="resultnote">A normalization step such as softmax turns those scores into a probability distribution.</div></div>
+<div>
+<div class="outputbars" id="outputBars">
+<div class="barrow"><b>loan</b><div class="bar"><i data-w="46"></i></div><span>46%</span></div>
+<div class="barrow"><b>request</b><div class="bar"><i data-w="13"></i></div><span>13%</span></div>
+<div class="barrow"><b>deal</b><div class="bar"><i data-w="9"></i></div><span>9%</span></div>
+<div class="barrow"><b>branch</b><div class="bar"><i data-w="4"></i></div><span>4%</span></div>
+<div class="barrow"><b>others</b><div class="bar"><i data-w="28"></i></div><span>28%</span></div>
+</div>
+<div class="actions"><button class="btn blue" id="makePrediction">Make the prediction</button></div>
+</div>
+</div>
+<div class="forward-reveal" id="forwardReveal"><b>You have just watched a forward pass.</b> Forward propagation is simply the calculation from encoded input → hidden processing → output probabilities. During a forward pass, the model uses its current weights. The weights do not change yet.</div>
+</div>
+</div>
+</div>
+</section>
+<section class="act" id="act2">
+<div class="wrap">
+<div class="acthead">
+<div class="actbadge" style="background:var(--coral)"><span>ACT 2 OF 4</span><strong>Learn.</strong><span>How the model improves from error.</span></div>
+<div><div class="eyebrow"><span class="dot"></span> Learn from being wrong</div><h2>A prediction is not learning. <span class="accent">Correction is.</span></h2><p class="lede">During pre-training, the text already contains the next token. That gives the model a target it can compare against its own prediction.</p></div>
+</div>
+<div class="section">
+<div class="section-title"><div class="stepnum">1</div><div><h3>Prediction versus reality</h3><p>Imagine the model is still early in training and gives too little probability to the correct next token.</p></div></div>
+<div class="train-grid">
+<div class="prediction">
+<h3>Model prediction</h3>
+<div class="outputbars">
+<div class="barrow"><b>request</b><div class="bar"><i style="width:34%"></i></div><span>34%</span></div>
+<div class="barrow"><b>deal</b><div class="bar"><i style="width:24%"></i></div><span>24%</span></div>
+<div class="barrow"><b>loan</b><div class="bar"><i style="width:10%;background:var(--coral)"></i></div><span>10%</span></div>
+<div class="barrow"><b>account</b><div class="bar"><i style="width:18%"></i></div><span>18%</span></div>
+</div>
+</div>
+<div class="target"><span class="small" style="color:#506447">The training text actually says:</span><div class="word">loan</div><p class="small" style="color:#506447">The model was too surprised by the correct token, so the loss is high.</p></div>
+</div>
+<div class="card" style="margin-top:18px">
+<h3>What should learning do next?</h3>
+<div class="direction-options" id="directionOptions">
+<button data-dir="up">Make “loan” more likely in similar contexts ↑</button>
+<button data-dir="down">Make “loan” less likely ↓</button>
+<button data-dir="none">Do nothing to the weights</button>
+</div>
+<div class="resultnote" id="directionFeedback" style="margin-top:14px">Choose what the training process should try to achieve.</div>
+</div>
+</div>
+<div class="section">
+<div class="section-title"><div class="stepnum">2</div><div><h3>Backpropagation sends the error signal backward</h3><p>The network calculates how its adjustable parameters contributed to the loss. An optimizer then nudges those parameters in directions expected to reduce future loss.</p></div></div>
+<div class="backprop" id="backprop">
+<div class="bp"><strong>1 · Measure loss</strong><p>How much probability did the model give the correct next token?</p></div>
+<div class="bp"><strong>2 · Backpropagate</strong><p>Use calculus to compute how each relevant parameter affected that loss.</p></div>
+<div class="bp"><strong>3 · Update weights</strong><p>The optimizer makes small numerical adjustments.</p></div>
+<div class="bp"><strong>4 · Try more text</strong><p>Repeat across enormous numbers of training examples.</p></div>
+</div>
+<div class="actions"><button class="btn primary" id="runLearning">Run one conceptual learning cycle</button><span class="chip" id="learningStatus">Waiting</span></div>
+<div class="generalize" id="generalize"><b>Important: learning is not supposed to memorize one sentence.</b><br/><br/>After many related examples, the model may become better at generalizing. For a new sentence such as <b>“The customer applied for a ___”</b>, “loan” may now receive more probability because the model has learned broader statistical patterns.</div>
+</div>
+<div class="section">
+<div class="section-title"><div class="stepnum">3</div><div><h3>The clever part: the text creates its own training targets</h3><p>This is why pre-training can scale so far. The model does not require a human to label the “correct next word” in every sentence.</p></div></div>
+<div class="selfsup">
+<div class="selfsup-art"><img alt="Illustrated professional thinking through examples" src="/art-2.webp"/></div>
+<div class="card">
+<h3>One sentence becomes many training examples</h3>
+<div class="examples" id="examples">
+<div class="example"><span>The</span><span>→ <b>bank</b></span></div>
+<div class="example"><span>The bank</span><span>→ <b>approved</b></span></div>
+<div class="example"><span>The bank approved</span><span>→ <b>the</b></span></div>
+<div class="example"><span>The bank approved the</span><span>→ <b>loan</b></span></div>
+<div class="example"><span>The bank approved the loan</span><span>→ <b>yesterday</b></span></div>
+</div>
+<div class="actions"><button class="btn blue" id="showExamples">Create the targets</button></div>
+<div class="revelation" id="revelation">The text itself supplies the answer. This is self-supervised next-token learning.</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="act" id="act3">
+<div class="wrap">
+<div class="acthead">
+<div class="actbadge" style="background:#2F7180"><span>ACT 3 OF 4</span><strong>Scale.</strong><span>How a network becomes a large language model.</span></div>
+<div><div class="eyebrow"><span class="dot"></span> Become large</div><h2>The basic learning loop stays familiar. <span class="blue">The scale explodes.</span></h2><p class="lede">A large language model repeats next-token learning over vast text collections using a very large transformer with many learned parameters and substantial computing resources.</p></div>
+</div>
+<div class="section">
+<div class="scale-wrap">
+<div class="mountain"><img alt="Abstract illustrated mountain representing the scale of large language model training" src="/art-3.webp"/></div>
+<div>
+<div class="scale-cards">
+<div class="scale-card"><div class="big">Prepared data</div><p>Before training, datasets are collected, filtered, deduplicated and formatted. The exact recipe varies by model.</p></div>
+<div class="scale-card"><div class="big">More text</div><p>Training spans huge token collections rather than one sentence.</p></div>
+<div class="scale-card"><div class="big">More parameters</div><p>The model contains a very large number of adjustable learned values.</p></div>
+<div class="scale-card"><div class="big">More compute</div><p>Training requires many high-performance accelerators and substantial infrastructure.</p></div>
+<div class="scale-card"><div class="big">More repetition</div><p>The predict → compare → update loop runs again and again across training data.</p></div>
+</div>
+<div class="memory"><p>Nothing magical suddenly appears at “large”. The same broad learning idea is being applied with a much more capable architecture, much more data and vastly more computation.</p></div>
+</div>
+</div>
+</div>
+<div class="section">
+<div class="scalequiz">
+<h3>Quick check: what makes an LLM “large”?</h3>
+<p class="small">Select every factor that genuinely contributes to the scale of a large language model.</p>
+<div class="checks" id="scaleChecks">
+<button class="check" data-correct="1">A very large number of learned parameters</button>
+<button class="check" data-correct="1">Very large training datasets</button>
+<button class="check" data-correct="1">Large amounts of compute</button>
+<button class="check" data-correct="0">Always producing very long answers</button>
+</div>
+<div class="actions"><button class="btn primary" id="checkScale">Check my answer</button><span class="chip" id="scaleResult">Select your answer</span></div>
+</div>
+</div>
+</div>
+</section>
+<section class="act" id="act4">
+<div class="wrap">
+<div class="acthead">
+<div class="actbadge" style="background:#5D58B8"><span>ACT 4 OF 4</span><strong>Assist.</strong><span>How a language model becomes useful in conversation.</span></div>
+<div><div class="eyebrow"><span class="dot"></span> Become an assistant</div><h2>Pre-training creates a language model. <span class="accent">Post-training shapes behavior.</span></h2><p class="lede">A raw pretrained model can continue text, but useful assistants need additional training and evaluation to follow instructions, prefer helpful responses and behave more safely.</p></div>
+</div>
+<div class="section">
+<div class="post-grid">
+<div class="stage-list" id="stageList">
+<div class="stage active" data-stagepost="0"><b>1 · Instruction / supervised tuning</b><small>Examples demonstrate how to respond to prompts and follow requested formats.</small></div>
+<div class="stage" data-stagepost="1"><b>2 · Preference learning</b><small>Human or AI-generated preference data can teach which responses are more desirable.</small></div>
+<div class="stage" data-stagepost="2"><b>3 · Safety + evaluation</b><small>Teams test capabilities, failure modes, policy behavior and robustness before deployment.</small></div>
+</div>
+<div class="stage-detail" id="stageDetail"></div>
+</div>
+</div>
+<div class="section">
+<div class="section-title"><div class="stepnum">★</div><div><h3>Experience the idea behind human preference training</h3><p>Classic RLHF is one documented approach. Modern systems can also use other preference-optimization methods. The core learning idea is that preferences provide a signal about which response is more useful.</p></div></div>
+<div class="rlhf">
+<div class="chip">User prompt</div>
+<h3 style="font-size:29px;margin-top:12px">“Explain compound interest to someone who hates maths.”</h3>
+<div class="answers" id="answers">
+<button class="answer" data-answer="a"><b>Answer A</b><p>Compound interest means you earn interest not only on your original money, but also on the interest that has already been added. Think of a snowball: as it rolls, it picks up more snow, so each new turn adds a little more than the one before.</p></button>
+<button class="answer" data-answer="b"><b>Answer B</b><p>Compound interest is obtained from A = P(1 + r/n)^(nt), where P is principal, r is the annual rate, n is the number of compounding periods and t is the number of years.</p></button>
+</div>
+<div class="pref-feedback" id="prefFeedback"></div>
+</div>
+</div>
+<div class="section">
+<div class="section-title"><div class="stepnum">→</div><div><h3>Finally: what happens when you actually chat with GPT?</h3><p>Training and chatting are different modes. During ordinary generation, the model usually uses learned weights to predict tokens. It is not backpropagating and rewriting those weights after every word of your conversation.</p></div></div>
+<div class="inference">
+<div class="robot-scene"><img alt="Friendly illustrated robot representing a deployed assistant" src="/art-4.webp"/></div>
+<div class="chatbox">
+<div class="chip">Illustrative generation</div>
+<div class="chatline" id="chatline">AI is</div>
+<div class="candidates" id="candidates"></div>
+<div class="actions"><button class="btn blue" id="nextToken">Generate next token</button><span class="chip" id="tokenStep">Step 0</span></div>
+<div class="modecompare">
+<div class="mode"><b>TRAINING MODE</b>Predict → compare with target → calculate loss → backpropagate → update weights.</div>
+<div class="mode"><b>CHAT MODE</b>Predict → choose token → append it → run another forward pass → repeat.</div>
+</div>
+<div class="micro" style="margin-top:12px">The sequence above is a teaching simulation, not an actual trace from a production GPT model. Real decoding may sample from several plausible tokens rather than always choosing the highest-probability one.</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="final" id="final">
+<div class="wrap">
+<div class="eyebrow"><span class="dot"></span> The big picture</div>
+<h2>You now have the full story, <span class="blue">end to end.</span></h2>
+<p class="lede">A GPT is not a database of prepared answers. It is a trained numerical model that repeatedly transforms context and predicts what token should come next.</p>
+<div class="map">
+<div class="mapstep"><div class="n">1</div><b>Prepare + encode data</b><p>Training text is curated, tokenized and converted into learned numerical representations.</p></div>
+<div class="mapstep"><div class="n">2</div><b>Transform context</b><p>Attention and feed-forward layers repeatedly rewrite representations.</p></div>
+<div class="mapstep"><div class="n">3</div><b>Predict</b><p>The output layer scores possible next tokens and turns scores into probabilities.</p></div>
+<div class="mapstep"><div class="n">4</div><b>Learn</b><p>During pre-training, the real next token supplies a target and loss drives weight updates.</p></div>
+<div class="mapstep"><div class="n">5</div><b>Scale</b><p>Repeat across enormous data, model capacity and compute to create an LLM.</p></div>
+<div class="mapstep"><div class="n">6</div><b>Post-train</b><p>Instruction, preference, safety and evaluation methods shape assistant behavior.</p></div>
+</div>
+<div class="taxonomy">
+<h3 style="color:white">Now the labels finally have something concrete behind them</h3>
+<div class="taxrow">
+<span class="tax">AI · broad field</span><span class="taxarrow">→</span>
+<span class="tax">ML · learn from data</span><span class="taxarrow">→</span>
+<span class="tax">ANN · layered neural computation</span><span class="taxarrow">→</span>
+<span class="tax">Transformer · attention-based architecture</span><span class="taxarrow">→</span>
+<span class="tax">LLM · transformer language model at large scale</span><span class="taxarrow">→</span>
+<span class="tax">GPT · Generative Pre-trained Transformer family</span>
+</div>
+</div>
+<div class="memory"><p>If you remember one thing tomorrow: <b>GPT learns by predicting the next token, comparing its prediction with what actually came next, adjusting its internal parameters, and repeating that process at immense scale. Post-training then shapes that language model into a more useful assistant.</b></p></div>
+<div class="actions"><button class="btn primary" data-jump="hero">Restart the story</button></div>
+</div>
+</section>
+</main>
+<footer class="footer">Participant-facing interactive explainer · Conceptual simulations are intentionally simplified and explicitly labeled where they are illustrative rather than literal internal traces.</footer>
+<script>
+(()=>{
+  const qs=s=>document.querySelector(s), qsa=s=>[...document.querySelectorAll(s)];
+  const sections=['hero','act1','act2','act3','act4','final'].map(id=>qs('#'+id));
+  qsa('[data-jump]').forEach(b=>b.onclick=()=>qs('#'+b.dataset.jump).scrollIntoView({behavior:'smooth'}));
+
+  function active(){
+    let best=0,dist=1e9;
+    sections.forEach((s,i)=>{const d=Math.abs(s.getBoundingClientRect().top-innerHeight*.16);if(d<dist){dist=d;best=i}});
+    return best;
+  }
+  function updateNav(){
+    const i=active();
+    qs('#progress').style.width=(i/(sections.length-1)*100)+'%';
+    qsa('.actnav button').forEach(b=>b.classList.toggle('active',b.dataset.jump===sections[i].id));
+  }
+  addEventListener('scroll',updateNav,{passive:true}); addEventListener('resize',updateNav); updateNav();
+
+  // Guess
+  qs('#guessOptions').onclick=e=>{
+    const b=e.target.closest('.option'); if(!b)return;
+    qsa('#guessOptions .option').forEach(x=>x.classList.toggle('selected',x===b));
+    qs('#guessBlank').textContent=b.dataset.word;
+    qs('#guessFeedback').classList.add('show');
+    qs('#guessFeedback').innerHTML = b.dataset.word==='loan'
+      ? '<b>That is a very plausible completion.</b> Your brain used context immediately. GPT also uses context, but it arrives there through learned numerical transformations rather than human intuition.'
+      : '<b>That completion is possible.</b> The important point is that language is uncertain: several tokens can fit, but they do not feel equally likely. GPT represents that uncertainty as probabilities.';
+  };
+
+  // Token stages
+  qsa('[data-tokenstage]').forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.tokenstage;
+    qsa('[data-tokenstage]').forEach(x=>x.classList.toggle('active',x===b));
+    qsa('.token-stage').forEach((x,j)=>x.classList.toggle('active',j===i));
+  });
+
+  // Attention
+  let picked=[];
+  qsa('.attn-token').forEach((b,i)=>b.onclick=()=>{
+    if(b.classList.contains('picked')){b.classList.remove('picked');picked=picked.filter(x=>x!==i)}
+    else if(picked.length<2){b.classList.add('picked');picked.push(i)}
+    qs('#attnCount').textContent=picked.length+' of 2 selected';
+  });
+  qs('#revealAttention').onclick=()=>{
+    const pct=[11,29,43,17], words=['The','bank','approved','the'];
+    qsa('.attn-token').forEach((b,i)=>{b.classList.add('reveal');b.querySelector('strong').textContent=pct[i]+'%'});
+    const chose = picked.map(i=>words[i]);
+    const hit = picked.includes(1)&&picked.includes(2);
+    qs('#attnResult').innerHTML=(picked.length<2
+      ? '<b>Try selecting two first.</b> We will still reveal the illustration so you can compare.'
+      : hit ? '<b>Your intuition matched this teaching example.</b> “approved” and “bank” carry much of the useful context for predicting the missing token.'
+      : '<b>Compare your choice with the illustration.</b> Here “approved” and “bank” are weighted most heavily for this prediction.')
+      + '<br><br><b>Illustrative weights:</b> approved 43%, bank 29%, the 17%, The 11%. A real GPT has many heads and layers, so attention is not one fixed human-readable ranking.';
+  };
+
+  // Hidden-block handoff: teach what actually moves between transformer blocks
+  let hiddenStage=0;
+  const hiddenVectors=[
+    ['0.21','-0.48','0.77','0.13'],
+    ['0.58','-0.19','1.02','0.27'],
+    ['0.31','0.24','1.38','0.42']
+  ];
+  const renderHiddenVector=(vals)=>{ qs('#repVector').innerHTML=vals.map(v=>`<span>${v}</span>`).join('')+'<em>…</em>'; qs('#repVector').classList.add('pulse'); setTimeout(()=>qs('#repVector').classList.remove('pulse'),350); };
+  qs('#advanceBlock').onclick=()=>{
+    if(hiddenStage===0){
+      hiddenStage=1; renderHiddenVector(hiddenVectors[1]);
+      qs('#insideAttn').classList.remove('active'); qs('#insideAttn').classList.add('done'); qs('#insideFF').classList.add('active');
+      qs('#contextMix').classList.add('show'); qs('#repTitle').textContent='After attention'; qs('#repStage').textContent='Context mixed in';
+      qs('#repExplain').textContent='Attention has mixed information from earlier tokens into the representation. Notice that the thing moving forward is still a vector of numbers.';
+      qs('#advanceBlock').textContent='Run feed-forward transformation'; qs('#handoffStatus').textContent='Step 2 of 3';
+    } else if(hiddenStage===1){
+      hiddenStage=2; renderHiddenVector(hiddenVectors[2]);
+      qs('#insideFF').classList.remove('active'); qs('#insideFF').classList.add('done'); qs('#insideOut').classList.add('active'); qs('.rep-card').classList.add('changed');
+      qs('#repTitle').textContent='Output of transformer block 1'; qs('#repStage').textContent='Ready to hand off';
+      qs('#repExplain').textContent='The feed-forward sublayer has transformed the representation again. Block 1 is finished. These output numbers are what can now move into block 2.';
+      qs('#advanceBlock').textContent='Block 1 complete'; qs('#advanceBlock').disabled=true; qs('#handoffStatus').textContent='Now answer the question →';
+      qs('#handoffFeedback').innerHTML='<b>Your turn:</b> what should block 2 receive?';
+    }
+  };
+  qsa('.handoff-options button').forEach(btn=>btn.onclick=()=>{
+    if(hiddenStage<2){ qs('#handoffFeedback').innerHTML='<b>Run the block first.</b> Watch what comes out, then answer.'; return; }
+    qsa('.handoff-options button').forEach(b=>b.classList.remove('correct','wrong'));
+    if(btn.dataset.answer==='vector'){
+      btn.classList.add('correct');
+      qs('#handoffFeedback').innerHTML='<b>Exactly.</b> Block 2 receives block 1’s numerical output representation — not the original sentence and not the attention percentages by themselves.';
+      setTimeout(()=>{ qs('#handoffQuestion').style.display='none'; qs('#nextBlock').classList.add('show'); },500);
+    } else {
+      btn.classList.add('wrong');
+      qs('#handoffFeedback').innerHTML='<b>Not quite.</b> The original text has already been encoded. What continues through the stack is the evolving numerical representation.';
+    }
+  });
+  qs('#runNextBlock').onclick=()=>{
+    qs('#afterNext').classList.add('show'); qs('#runNextBlock').disabled=true; qs('#runNextBlock').textContent='Block 2 complete';
+  };
+
+  // Microscope
+  qs('#microHead').onclick=()=>{
+    const open=qs('#microBody').classList.toggle('open'); qs('#microToggle').textContent=open?'Close':'Open';
+  };
+  function gelu(x){return .5*x*(1+Math.tanh(Math.sqrt(2/Math.PI)*(x+.044715*Math.pow(x,3))))}
+  qs('#signalSlider').oninput=e=>{
+    const x=+e.target.value; qs('#signalLabel').textContent=x.toFixed(2); qs('#geluOut').textContent=gelu(x).toFixed(2);
+  };
+  qs('#geluOut').textContent=gelu(.8).toFixed(2);
+
+  // Output
+  qs('#makePrediction').onclick=()=>{
+    qsa('#outputBars .bar i').forEach(i=>i.style.width=i.dataset.w+'%');
+    qs('#forwardReveal').classList.add('show');
+  };
+
+  // Direction
+  qs('#directionOptions').onclick=e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    qsa('#directionOptions button').forEach(x=>x.classList.remove('good','bad'));
+    if(b.dataset.dir==='up'){
+      b.classList.add('good'); qs('#directionFeedback').innerHTML='<b>Exactly.</b> Training should adjust parameters so the correct token receives more probability in similar contexts, while still preserving useful behavior elsewhere.';
+    } else {
+      b.classList.add('bad'); qs('#directionFeedback').innerHTML='<b>Not quite.</b> Because “loan” was the known correct token and the model assigned it only 10%, the learning signal should push the model toward assigning it more probability in similar contexts.';
+    }
+  };
+
+  // Learning cycle
+  let learningBusy=false;
+  qs('#runLearning').onclick=async()=>{
+    if(learningBusy)return; learningBusy=true;
+    const steps=qsa('#backprop .bp'), labels=['Loss measured','Gradients flowing backward','Weights nudged','Move to more examples'];
+    for(let i=0;i<steps.length;i++){
+      steps.forEach((x,j)=>x.classList.toggle('active',i===j)); qs('#learningStatus').textContent=labels[i];
+      await new Promise(r=>setTimeout(r,700));
+    }
+    qs('#generalize').classList.add('show'); learningBusy=false;
+  };
+
+  // Self supervised
+  qs('#showExamples').onclick=async()=>{
+    for(const x of qsa('#examples .example')){x.classList.add('show');await new Promise(r=>setTimeout(r,280))}
+    qs('#revelation').classList.add('show');
+  };
+
+  // Scale quiz
+  qsa('#scaleChecks .check').forEach(b=>b.onclick=()=>b.classList.toggle('selected'));
+  qs('#checkScale').onclick=()=>{
+    const buttons=qsa('#scaleChecks .check');
+    let all=true;
+    buttons.forEach(b=>{
+      const should=b.dataset.correct==='1', selected=b.classList.contains('selected');
+      b.classList.remove('correct','wrong');
+      if(selected===should)b.classList.add('correct'); else {b.classList.add('wrong');all=false}
+    });
+    qs('#scaleResult').textContent=all?'Perfect ✓':'Review the highlighted choices';
+  };
+
+  // Post stages
+  const postData=[
+    '<div class="chip">Supervised examples</div><h3 style="font-size:30px;margin-top:14px">Show the model what following an instruction looks like.</h3><p class="small">Training examples pair prompts with desired responses. This helps move a pretrained language model from “continue text” toward “respond usefully to the user’s instruction”.</p>',
+    '<div class="chip">Preference signal</div><h3 style="font-size:30px;margin-top:14px">Teach which of several reasonable responses people prefer.</h3><p class="small">Classic RLHF can train a reward model from human comparisons and then optimize the language model toward preferred behavior. Other modern methods can optimize from preference data more directly.</p>',
+    '<div class="chip">Evaluation loop</div><h3 style="font-size:30px;margin-top:14px">Test what the model can do, where it fails and how it behaves.</h3><p class="small">Capabilities, safety behavior, hallucination tendencies, robustness and policy compliance are evaluated before and after deployment. This is not one final exam; it is an ongoing engineering process.</p>'
+  ];
+  function showPost(i){qsa('#stageList .stage').forEach((s,j)=>s.classList.toggle('active',i===j));qs('#stageDetail').innerHTML=postData[i]}
+  qs('#stageList').onclick=e=>{const s=e.target.closest('.stage');if(s)showPost(+s.dataset.stagepost)};showPost(0);
+
+  // RLHF
+  qs('#answers').onclick=e=>{
+    const a=e.target.closest('.answer'); if(!a)return;
+    qsa('#answers .answer').forEach(x=>x.classList.toggle('selected',x===a));
+    qs('#prefFeedback').classList.add('show');
+    if(a.dataset.answer==='a'){
+      qs('#prefFeedback').innerHTML='<b>For this user, A is likely to be preferred.</b> It respects “hates maths”, gives the core idea first and uses a simple analogy. A collection of many such comparisons can become a training signal about preferred behavior.';
+    }else{
+      qs('#prefFeedback').innerHTML='<b>B is mathematically valid, but poorly matched to this user.</b> Preference training is partly about context-sensitive usefulness, not merely factual correctness. The user explicitly asked for a non-mathematical explanation.';
+    }
+  };
+
+  // Inference
+  const gen=[
+    {word:'changing',cand:[['changing',43],['helping',26],['transforming',18],['reshaping',13]]},
+    {word:'how',cand:[['how',52],['the',21],['business',15],['work',12]]},
+    {word:'businesses',cand:[['businesses',47],['people',24],['we',17],['companies',12]]},
+    {word:'work',cand:[['work',49],['operate',23],['compete',18],['grow',10]]},
+    {word:'today.',cand:[['today.',41],['globally.',24],['everywhere.',19],['already.',16]]}
+  ];
+  let gi=0, phrase=['AI','is'];
+  function renderCand(){
+    const row=gen[Math.min(gi,gen.length-1)];
+    qs('#candidates').innerHTML=row.cand.map(([w,p])=>`<div class="candidate"><b>${w}</b><div class="bar"><i style="width:${p}%"></i></div><span>${p}%</span></div>`).join('');
+  }
+  qs('#nextToken').onclick=()=>{
+    if(gi>=gen.length){gi=0;phrase=['AI','is'];qs('#nextToken').textContent='Generate next token'}
+    else{phrase.push(gen[gi].word);gi++; if(gi===gen.length)qs('#nextToken').textContent='Restart generation'}
+    qs('#chatline').textContent=phrase.join(' ');qs('#tokenStep').textContent='Step '+gi;renderCand();
+  };renderCand();
+})();
+</script>
+
+<script>if('serviceWorker'in navigator){addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));}</script>
+</body></html>
